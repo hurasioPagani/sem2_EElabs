@@ -1,0 +1,42 @@
+clc;
+clear;
+
+% Motor parameters (based on Chapman Example 7-5)
+f = 60;                     % Frequency in Hz
+p = 4;                      % Number of poles
+ns = 120*f/p;               % Synchronous speed in RPM
+ws = 2*pi*ns/60;            % Synchronous speed in rad/s
+
+V_th = 208.2;               % Thevenin voltage in volts
+R_th = 0.255;               % Thevenin resistance in ohms
+X_th = 0.435;               % Thevenin reactance in ohms
+X_r = 0.816;                % Rotor reactance referred to stator
+
+% Rotor resistances to consider
+RR_base = 0.15;             % Chosen base rotor resistance (example)
+RR_values = [0.5, 1, 2]*RR_base;   % Half, Base, and Double RR
+
+s = linspace(0.001, 1, 1000);  % Slip from near 0 to 1
+
+% Initialize figure
+figure;
+hold on;
+grid on;
+colors = ['r', 'g', 'b'];
+legends = {};
+
+% Loop over each rotor resistance
+for i = 1:length(RR_values)
+    RR = RR_values(i);
+    
+    T = (3 * V_th^2 .* RR ./ s) ./ ...
+        (ws * ((R_th + RR./s).^2 + (X_th + X_r)^2));   % Torque equation
+    
+    plot((1-s)*ns, T, colors(i), 'LineWidth', 2);  % Speed in RPM vs Torque
+    legends{end+1} = ['R_r = ' num2str(RR, '%.3f') ' \Omega'];
+end
+
+xlabel('Rotor Speed (RPM)');
+ylabel('Torque (Nm)');
+title('Torque-Speed Characteristics of Induction Motor');
+legend(legends, 'Location', 'NorthEast');
